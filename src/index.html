@@ -1,12 +1,232 @@
 <!DOCTYPE html>
-<html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Hello World</title>
-  </head>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Compressor de Vídeo</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            background-color: #f0f2f5;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background-color: #fff;
+            padding: 2rem;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            max-width: 500px;
+            width: 100%;
+        }
+        h1 {
+            text-align: center;
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+        label {
+            margin-bottom: 0.5rem;
+            color: #555;
+        }
+        input[type="file"], input[type="number"], select {
+            padding: 0.75rem;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+        input[type="range"] {
+            padding: 0;
+        }
+        button {
+            padding: 0.75rem;
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 1rem;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .progress-container {
+            display: none;
+            flex-direction: column;
+            align-items: center;
+        }
+        .progress-bar {
+            width: 100%;
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+            margin-top: 1rem;
+        }
+        .progress-bar-inner {
+            height: 100%;
+            width: 0%;
+            background-color: #007bff;
+            transition: width 0.1s ease-in-out;
+        }
+        .progress-text {
+            margin-top: 0.5rem;
+            color: #555;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Compressor de Vídeo</h1>
+        <form id="compression-form" action="/compress" method="post" enctype="multipart/form-data">
+            <div class="form-group">
+                <label for="video">Selecione o arquivo de vídeo:</label>
+                <input type="file" id="video" name="video" accept="video/*" required>
+            </div>
+            <div class="form-group">
+                <label for="target_size_percentage">Tamanho Alvo (% do original): <span id="target_size_info"></span></label>
+                <input type="range" id="target_size_percentage" name="target_size_percentage" min="1" max="100" value="50" disabled>
+                <input type="hidden" id="target_size" name="target_size">
+            </div>
+            <div class="form-group">
+                <label for="optimization_type">Tipo de Otimização:</label>
+                <select id="optimization_type" name="optimization_type">
+                    <option value="compress" selected>Apenas Comprimir</option>
+                    <option value="compress_framerate">Comprimir e Reduzir Taxa de Quadros</option>
+                    <option value="compress_resolution">Comprimir e Reduzir Resolução</option>
+                </select>
+            </div>
+            <button type="submit">Comprimir Vídeo</button>
+        </form>
+        <div id="progress-container" class="progress-container">
+            <h2 id="progress-title">Processando...</h2>
+            <div class="progress-bar">
+                <div id="progress-bar-inner" class="progress-bar-inner"></div>
+            </div>
+            <div id="progress-text" class="progress-text">0%</div>
+        </div>
+    </div>
 
-  <body>
-    <h1>Hello World</h1>
-  </body>
+    <script>
+        const form = document.getElementById('compression-form');
+        const progressContainer = document.getElementById('progress-container');
+        const progressTitle = document.getElementById('progress-title');
+        const progressBar = document.getElementById('progress-bar-inner');
+        const progressText = document.getElementById('progress-text');
+        const videoInput = document.getElementById('video');
+        const targetSizePercentageInput = document.getElementById('target_size_percentage');
+        const targetSizeInfo = document.getElementById('target_size_info');
+        const targetSizeInput = document.getElementById('target_size');
+
+        let originalSize = 0;
+
+        videoInput.addEventListener('change', () => {
+            const file = videoInput.files[0];
+            if (file) {
+                originalSize = file.size;
+                targetSizePercentageInput.disabled = false;
+                updateTargetSize();
+            } else {
+                originalSize = 0;
+                targetSizePercentageInput.disabled = true;
+                targetSizeInfo.textContent = '';
+                targetSizeInput.value = '';
+            }
+        });
+
+        targetSizePercentageInput.addEventListener('input', updateTargetSize);
+
+        function updateTargetSize() {
+            const percentage = targetSizePercentageInput.value;
+            if (originalSize > 0) {
+                const targetSizeInBytes = originalSize * (percentage / 100);
+                const targetSizeInMB = (targetSizeInBytes / (1024 * 1024));
+                targetSizeInfo.textContent = `${percentage}% (${targetSizeInMB.toFixed(2)} MB)`;
+                targetSizeInput.value = targetSizeInMB.toFixed(2);
+            }
+        }
+
+        if (videoInput.files.length > 0) {
+            videoInput.dispatchEvent(new Event('change'));
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+            form.style.display = 'none';
+            progressTitle.textContent = 'Enviando...';
+            progressContainer.style.display = 'flex';
+            progressBar.style.width = '0%';
+            progressText.textContent = '0%';
+            
+            const formData = new FormData(form);
+            const xhr = new XMLHttpRequest();
+            xhr.open('POST', '/compress', true);
+            xhr.responseType = 'blob'; // We expect a blob response (the compressed file)
+
+            xhr.upload.onprogress = (event) => {
+                if (event.lengthComputable) {
+                    const percentComplete = Math.round((event.loaded / event.total) * 100);
+                    progressBar.style.width = percentComplete + '%';
+                    progressText.textContent = percentComplete + '%';
+                    if (percentComplete === 100) {
+                        progressTitle.textContent = 'Processando...';
+                        progressText.textContent = 'Aguarde, isso pode levar alguns minutos.';
+                    }
+                }
+            };
+
+            xhr.onload = () => {
+                progressContainer.style.display = 'none'; // Hide progress
+                form.style.display = 'flex'; // Show form again
+
+                if (xhr.status === 200) {
+                    const blob = xhr.response;
+                    const disposition = xhr.getResponseHeader('Content-Disposition');
+                    let filename = "compressed_video.mp4"; // Default filename
+                    if (disposition && disposition.indexOf('attachment') !== -1) {
+                        const filenameRegex = /filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/;
+                        const matches = filenameRegex.exec(disposition);
+                        if (matches != null && matches[1]) {
+                          filename = matches[1].replace(/['"]/g, '');
+                        }
+                    }
+
+                    const a = document.createElement('a');
+                    a.style.display = 'none';
+                    const url = window.URL.createObjectURL(blob);
+                    a.href = url;
+                    a.download = filename;
+                    document.body.appendChild(a);
+                    a.click();
+                    window.URL.revokeObjectURL(url);
+                    document.body.removeChild(a);
+
+                } else {
+                    alert('Ocorreu um erro durante a compressão.');
+                }
+                
+                // Reset form and inputs for the next compression
+                form.reset();
+                videoInput.dispatchEvent(new Event('change'));
+            };
+            
+            xhr.onerror = () => {
+                progressContainer.style.display = 'none';
+                form.style.display = 'flex';
+                alert('Ocorreu um erro na requisição.');
+            };
+
+            xhr.send(formData);
+        });
+    </script>
+</body>
 </html>

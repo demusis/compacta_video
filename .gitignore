@@ -1,1 +1,14 @@
-.venv
+# Virtual Environment
+.venv/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# Temporary video files
+input_*
+compressed_*
+
+# IDE configuration
+.idea/
+.vscode/
