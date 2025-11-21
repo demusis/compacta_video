@@ -8,8 +8,8 @@ Esta é uma aplicação web simples para comprimir arquivos de vídeo. O backend
 - Definição do tamanho alvo da compressão através de um controle deslizante (slider).
 - Opções de otimização:
     - Apenas comprimir.
-    - Comprimir e reduzir a taxa de quadros (para 24 fps).
-    - Comprimir e reduzir a resolução (para 480p).
+    - Comprimir e reduzir a taxa de quadros.
+    - Comprimir e reduzir a resolução.
 - Feedback de progresso durante o upload e processamento.
 - Download automático do vídeo comprimido.
 
@@ -46,7 +46,7 @@ Esta é uma aplicação web simples para comprimir arquivos de vídeo. O backend
 
 5.  Abra seu navegador e acesse `http://127.0.0.1:80` (ou a porta que for indicada no terminal).
 
-##  kullanımı Como Usar
+##  Como Usar
 
 1.  Acesse a página principal da aplicação.
 2.  Clique em "Selecione o arquivo de vídeo" para escolher o vídeo que deseja comprimir.
