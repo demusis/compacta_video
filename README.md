@@ -2,7 +2,7 @@
 
 Esta é uma aplicação web simples para comprimir arquivos de vídeo. O backend é construído com Python e Flask, e utiliza o FFmpeg para o processamento de vídeo.
 
-## ✨ Funcionalidades
+## Funcionalidades
 
 - Upload de arquivos de vídeo.
 - Definição do tamanho alvo da compressão através de um controle deslizante (slider).
@@ -13,13 +13,13 @@ Esta é uma aplicação web simples para comprimir arquivos de vídeo. O backend
 - Feedback de progresso durante o upload e processamento.
 - Download automático do vídeo comprimido.
 
-## 🛠️ Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 - **Backend:** Python, Flask
 - **Processamento de Vídeo:** FFmpeg (através da biblioteca `ffmpeg-python`)
 - **Frontend:** HTML, CSS, JavaScript
 
-## 🚀 Como Executar Localmente
+## Como Executar Localmente
 
 1.  **Clone o repositório:**
     ```bash
